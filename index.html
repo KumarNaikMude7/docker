@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineTicket 2026 | Future of Cinema</title>
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --seat-available: #475569;
+            --seat-selected: #38bdf8;
+            --seat-occupied: #f8fafc;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Movie Selection */
+        .movie-picker {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .movie-picker select {
+            background-color: var(--secondary-bg);
+            color: white;
+            border: 2px solid var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Showcase Legend */
+        .legend {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 30px;
+            border-radius: 12px;
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .legend li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* The Seat Styling */
+        .seat {
+            background-color: var(--seat-available);
+            height: 18px;
+            width: 22px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .seat:not(.occupied):hover {
+            cursor: pointer;
+            transform: scale(1.2);
+            background-color: #64748b;
+        }
+
+        .seat.selected { background-color: var(--seat-selected); box-shadow: 0 0 10px var(--accent-color); }
+        .seat.occupied { background-color: var(--seat-occupied); cursor: not-allowed; opacity: 0.3; }
+
+        /* The Cinema Layout */
+        .theater-container { perspective: 1000px; margin-bottom: 30px; }
+
+        .screen {
+            background-color: #fff;
+            height: 80px;
+            width: 100%;
+            margin: 20px 0 40px 0;
+            transform: rotateX(-45deg);
+            box-shadow: 0 3px 20px rgba(56, 189, 248, 0.7);
+            border-radius: 5px;
+        }
+
+        .seat-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 8px; }
+
+        /* Booking Footer */
+        .booking-summary {
+            text-align: center;
+            background: var(--secondary-bg);
+            padding: 20px 40px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .booking-summary p { font-size: 1.1rem; margin-bottom: 15px; }
+        .booking-summary span { color: var(--accent-color); font-weight: bold; }
+
+        .confirm-btn {
+            background-color: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .confirm-btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 style="letter-spacing: 2px;">CINE<span style="color:var(--accent-color)">TICKET</span> 2026</h1>
+    </header>
+
+    <div class="movie-picker">
+        <label>Select Movie: </label>
+        <select id="movie">
+            <option value="16">Avengers: Doomsday ($16)</option>
+            <option value="14">Spider-Man 4 ($14)</option>
+            <option value="12">Toy Story 5 ($12)</option>
+            <option value="20">Dune: Part Three ($20)</option>
+        </select>
+    </div>
+
+    <ul class="legend">
+        <li><div class="seat"></div> Available</li>
+        <li><div class="seat selected"></div> Selected</li>
+        <li><div class="seat occupied"></div> Sold Out</li>
+    </ul>
+
+    <div class="theater-container">
+        <div class="screen"></div>
+        <div id="seat-map">
+            </div>
+    </div>
+
+    <div class="booking-summary">
+        <p>Selected Seats: <span id="count">0</span> | Total Price: $<span id="total">0</span></p>
+        <button class="confirm-btn" onclick="alert('Proceeding to 2026 Crypto Payment Gateway...')">Book Now</button>
+    </div>
+
+    <script>
+        const seatMap = document.getElementById('seat-map');
+        const movieSelect = document.getElementById('movie');
+        const count = document.getElementById('count');
+        const total = document.getElementById('total');
+
+        let ticketPrice = +movieSelect.value;
+
+        // Create Theater Layout (6 rows, 8 seats each)
+        function initTheater() {
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('div');
+                row.classList.add('seat-row');
+                
+                for (let j = 0; j < 8; j++) {
+                    const seat = document.createElement('div');
+                    seat.classList.add('seat');
+                    
+                    // Randomly occupy some seats for realism
+                    if (Math.random() > 0.85) {
+                        seat.classList.add('occupied');
+                    }
+                    
+                    row.appendChild(seat);
+                }
+                seatMap.appendChild(row);
+            }
+        }
+
+        // Update counts
+        function updateSelection() {
+            const selectedSeats = document.querySelectorAll('.seat-row .seat.selected');
+            const selectedCount = selectedSeats.length;
+            
+            count.innerText = selectedCount;
+            total.innerText = selectedCount * ticketPrice;
+        }
+
+        // Event: Click on seat
+        seatMap.addEventListener('click', (e) => {
+            if (e.target.classList.contains('seat') && !e.target.classList.contains('occupied')) {
+                e.target.classList.toggle('selected');
+                updateSelection();
+            }
+        });
+
+        // Event: Change movie
+        movieSelect.addEventListener('change', (e) => {
+            ticketPrice = +e.target.value;
+            updateSelection();
+        });
+
+        initTheater();
+    </script>
+</body>
+</html>
